@@ -43,7 +43,9 @@ void ringBell(){
 }
 
 void doCountdownLights(){
-  
+  //strip.setPixelColor(11,color);
+  //strip.fill(color, first, count);
+  //strip.show();
 }
 
 void checkPlayer(const uint8_t PIN,bool& isready){
