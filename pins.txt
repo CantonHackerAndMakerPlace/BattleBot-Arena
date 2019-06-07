@@ -1,12 +1,12 @@
 PinS
 
-tx	:0
-rx	:1
+tx			:0
+rx			:1
 Lights	:2
-	:3
-Ring	:4
+			:3
+Ring		:4
 DoorP	:5
 Door2	:6
 Door1	:7
-Button1 :8
-Button2 :9
+Button1:8
+Button2:9
