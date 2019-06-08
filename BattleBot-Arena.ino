@@ -12,8 +12,8 @@
     const uint8_t DOOR1PIN = 7;
     const uint8_t BUTN1PIN = 8;
     const uint8_t BUTN2PIN = 9;
-    const uint8_t DOORSEN1 = 10;
-    const uint8_t DOORSEN2 = 11;
+    const uint8_t DOORSEN1 = 11;
+    const uint8_t DOORSEN2 = 13;
 
     //Player states
     bool player1ready = false;
@@ -25,8 +25,8 @@
     long currentroundtime = 0;
     
     //Door Stuff
-    bool door1open = false;
-    bool door2open = false;
+    bool door1open = true;
+    bool door2open = true;
 
     //Light Stuff
     typedef uint32_t Color;
@@ -37,50 +37,64 @@
     
     //Functions
 void ringBell(){
+  Serial.println("RING");
   digitalWrite(RINGRPIN,HIGH);
   delay(1000);
   digitalWrite(RINGRPIN,LOW);
 }
 
 void doCountdownLights(){
+  Serial.println("Countdown");
+  Serial.println("3...");
+  delay(1000);
+  Serial.println("2...");
+  delay(1000);
+  Serial.println("1...");
+  delay(1000);
+  Serial.println("Go!");
   //strip.setPixelColor(11,color);
   //strip.fill(color, first, count);
   //strip.show();
 }
 
 void checkPlayer(const uint8_t PIN,bool& isready){
+  Serial.println("CheckPlayer");
   if(isready){
     return;
   }
-  if(digitalRead(PIN) == HIGH){
+  if(digitalRead(PIN) == LOW){
     //Set Lights
     isready = true;
   }
 }
 
 void openTrapDoors(){
+  Serial.println("Open Trap Doors");
   digitalWrite(DOORPPIN,HIGH); //Energise Door
   delay(500);
   digitalWrite(DOORPPIN,LOW); //
 }
 
-bool closeTrapDoor(const uint8_t door,const uint8_t sensor,bool& closed){
-  if(closed){
+bool closeTrapDoor(const uint8_t door,const uint8_t sensor,bool& dooropen){
+  if(!dooropen){
     return true;
   }
-  if(digitalRead(sensor) == HIGH){
+  if(digitalRead(sensor) == LOW){
+    Serial.print(sensor);
+    Serial.println(" trap door closed.");
     //It just closed
     delay(10);
     digitalWrite(door,HIGH);
     delay(100);
     digitalWrite(door,LOW);
-    closed = true;
+    dooropen = false;
   }
   //Still open
 }
 
 void closeTrapDoors(){
   while(door1open || door2open){
+    Serial.println("Wainting for doors to close");
     closeTrapDoor(DOOR1PIN,DOORSEN1,door1open);
     closeTrapDoor(DOOR2PIN,DOORSEN2,door2open);
   }
@@ -103,6 +117,7 @@ void setup() {
   digitalWrite(DOOR2PIN,LOW);
   strip.begin();
   strip.show();
+  Serial.begin(9600);
   closeTrapDoors(); //Ensure doors are closed before game begins.
 }
 
@@ -113,7 +128,7 @@ void loop() {
     if(currentroundtime == DOOROPENTIME){ //Time to open the doors.
       openTrapDoors();
     }
-    if(currentroundtime == DOOROPENTIME){ //Round end
+    if(currentroundtime == ROUNDLENGHT){ //Round end
       ringBell();
     }
   }
