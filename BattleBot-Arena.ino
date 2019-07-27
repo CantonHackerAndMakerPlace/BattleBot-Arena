@@ -1,6 +1,5 @@
     #include <Adafruit_NeoPixel.h>
     
-    
     /*  PINOUT  */
     //0 tx
     //1 rx
@@ -20,8 +19,10 @@
     bool player2ready = false;
 
     //Round Stuff
+    const long ROUNDDELAY =   10000;  //10 seconds
     const long ROUNDLENGHT =  180000; //3 Minutes
     const long DOOROPENTIME = 120000; //2 Minutes
+    const long DOLIGHTDIM =   105000; //1 Minute 45 Seconds
     long currentroundtime = 0;
     
     //Door Stuff
@@ -29,14 +30,19 @@
     bool door2open = true;
 
     //Light Stuff
+    const uint8_t STRIP_SIZE = 40;
     typedef uint32_t Color;
-    Adafruit_NeoPixel strip = Adafruit_NeoPixel(60, LIGHTPIN, NEO_GRB + NEO_KHZ800);
-    Color RED = strip.Color(255, 0, 0);
-    Color YELLOW = strip.Color(255,255,0);
+    Adafruit_NeoPixel strip = Adafruit_NeoPixel(STRIP_SIZE, LIGHTPIN, NEO_GRB + NEO_KHZ800);
+    Color RED = strip.Color(0, 255, 0);
+    Color YELLOW = strip.Color(200,255,0);
     Color GREEN = strip.Color(255, 0, 0);
+    Color WHITE = strip.Color(255,255,255);
+    Color BLUE = strip.Color(0,0,255);
     
     //Functions
 void ringBell(){
+  strip.fill(RED, 0, STRIP_SIZE);
+  strip.show();
   Serial.println("RING");
   digitalWrite(RINGRPIN,HIGH);
   delay(1000);
@@ -44,14 +50,23 @@ void ringBell(){
 }
 
 void doCountdownLights(){
+  delay(ROUNDDELAY);
   Serial.println("Countdown");
   Serial.println("3...");
+  strip.fill(RED, 0, STRIP_SIZE);
+  strip.show();
   delay(1000);
   Serial.println("2...");
+  strip.fill(YELLOW, 0, STRIP_SIZE);
+  strip.show();
   delay(1000);
   Serial.println("1...");
+  strip.fill(GREEN, 0, STRIP_SIZE);
+  strip.show();
   delay(1000);
   Serial.println("Go!");
+  strip.fill(WHITE, 0, STRIP_SIZE);
+  strip.show();
   //strip.setPixelColor(11,color);
   //strip.fill(color, first, count);
   //strip.show();
@@ -65,13 +80,22 @@ void checkPlayer(const uint8_t PIN,bool& isready){
   if(digitalRead(PIN) == LOW){
     //Set Lights
     isready = true;
+    if(PIN == BUTN1PIN){
+      strip.fill(GREEN, 0, STRIP_SIZE / 2);
+    }
+    else{
+      strip.fill(GREEN, STRIP_SIZE / 2, STRIP_SIZE / 2);
+    }
+    strip.show();
   }
 }
 
 void openTrapDoors(){
+  strip.fill(WHITE, 0, STRIP_SIZE);
+  strip.show();
   Serial.println("Open Trap Doors");
   digitalWrite(DOORPPIN,HIGH); //Energise Door
-  delay(500);
+  delay(200);
   digitalWrite(DOORPPIN,LOW); //
 }
 
@@ -118,7 +142,11 @@ void setup() {
   strip.begin();
   strip.show();
   Serial.begin(9600);
+  strip.fill(RED, 0, STRIP_SIZE);
+  strip.show();
   closeTrapDoors(); //Ensure doors are closed before game begins.
+  strip.fill(BLUE, 0, STRIP_SIZE);
+  strip.show();
 }
 
 void loop() {
@@ -127,6 +155,10 @@ void loop() {
     currentroundtime++;
     if(currentroundtime == DOOROPENTIME){ //Time to open the doors.
       openTrapDoors();
+    }
+    if(currentroundtime == DOLIGHTDIM){   //Warn players of doors opening
+       strip.fill(YELLOW, 0, STRIP_SIZE);
+       strip.show();
     }
     if(currentroundtime == ROUNDLENGHT){ //Round end
       ringBell();
